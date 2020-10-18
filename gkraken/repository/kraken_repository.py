@@ -20,7 +20,8 @@ from enum import Enum
 from typing import Optional, List, Tuple
 
 from injector import singleton, inject
-from liquidctl.driver.kraken_two import KrakenTwoDriver
+# from liquidctl.driver.kraken_two import KrakenTwoDriver  # original code for Kraken 2 driver
+from liquidctl.driver.kraken3 import KrakenX3
 
 from gkraken.di import INJECTOR
 from gkraken.model.status import Status
@@ -34,10 +35,10 @@ class KrakenRepository:
     @inject
     def __init__(self) -> None:
         self.lock = threading.RLock()
-        self._driver: Optional[KrakenTwoDriver] = None
+        self._driver: Optional[KrakenX3] = None
 
     def has_supported_kraken(self) -> bool:
-        return self._driver is not None or INJECTOR.get(Optional[KrakenTwoDriver]) is not None
+        return self._driver is not None or INJECTOR.get(Optional[KrakenX3]) is not None
 
     def cleanup(self) -> None:
         _LOG.debug("KrakenRepository cleanup")
@@ -51,6 +52,9 @@ class KrakenRepository:
         if self._driver:
             try:
                 status_list = [v for k, v, u in self._driver.get_status()]
+                status_list.append("5.2.0")  # added for version checking X3 firmware is returned in initialize intead of status
+                # _LOG.debug("status -- debug")  # used for debugging
+                # _LOG.debug(status_list)  # used for debugging
                 status = Status(
                     status_list[_StatusType.LIQUID_TEMPERATURE.value],
                     status_list[_StatusType.FAN_RPM.value],
@@ -80,7 +84,7 @@ class KrakenRepository:
 
     def _load_driver(self) -> None:
         if not self._driver:
-            self._driver = INJECTOR.get(Optional[KrakenTwoDriver])
+            self._driver = INJECTOR.get(Optional[KrakenX3])
 
             if self._driver:
                 self._driver.connect()

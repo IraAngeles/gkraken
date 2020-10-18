@@ -28,4 +28,5 @@ class Status:
         self.fan_rpm: int = fan_rpm
         self.fan_duty: Optional[float] = None
         self.pump_rpm: int = pump_rpm
+#        self.firmware_version: str = None
         self.firmware_version: str = firmware_version
